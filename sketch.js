@@ -12,6 +12,7 @@ let currentChannel = -1; // For the channel to change when first interaction
 
 let callSounds = []; // Raw call audio
 let responseSounds = []; // Raw response audio
+let callfrequency = 0.3; // 30% chance to use call/response instead of dub
 let awaitingResponse = false; // Flag to wait for next spike
 let queuedResponse = null; // Reference to the response dub to be played
 
@@ -201,7 +202,8 @@ function startDub() {
   isDubbing = true; // Prevent overlapping dubs
   videoAudio.setVolume(0); // Mute the original audio during dub
 
-  let useCallResponse = random([true, false]);
+  // 30% chance for call/response
+  let useCallResponse = random(1) < callfrequency;
 
   if (useCallResponse && callSounds.length > 0 && responseSounds.length > 0) {
     currentDub = random(callSounds);
