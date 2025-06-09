@@ -51,12 +51,12 @@ function preload() {
   powerButtonIcon = loadImage("assets/powerButtonIcon.jpg");
 
   // Load the main video file (muted) and its original audio track
-  video = createVideo(['video.mp4']);
-  videoAudio = loadSound('video_audio.mp3');
-  video = createVideo(['volcano_video.mp4']);
-  videoAudio = loadSound('volcano_audio.mp3');
-  video = createVideo(['bobRoss_video.mp4']);
-  videoAudio = loadSound('bobRoss_audio.mp3');
+  //video = createVideo(['video.mp4']);
+  //videoAudio = loadSound('video_audio.mp3');
+  //video = createVideo(['volcano_video.mp4']);
+  //videoAudio = loadSound('volcano_audio.mp3');
+  //video = createVideo(['bobRoss_video.mp4']);
+  //videoAudio = loadSound('bobRoss_audio.mp3');
 
   //Load the video and the original audio into the array
   dubVideo.push(createVideo("video.mp4"));
