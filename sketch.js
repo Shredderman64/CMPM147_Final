@@ -111,10 +111,38 @@ function preload() {
   dubAudios.push(loadSound("random-what-about-us.mp3"));
   dubAudios.push(loadSound("random-wilhelm.mp3"));
   
-
+  // Load the call and response audios into the arrays
+  // From Action/Thriller Folder
+  callSounds.push(loadSound("call-clockwork.mp3"));
+  callSounds.push(loadSound("call-clue.mp3"));
+  callSounds.push(loadSound("call-goldfinger.mp3"));
   callSounds.push(loadSound("call-harry.mp3"));
-  responseSounds.push(loadSound("response-conan.mp3"));
+  callSounds.push(loadSound("call-luke.mp3"));
+  callSounds.push(loadSound("call-ocean.mp3"));
+  callSounds.push(loadSound("call-present-danger.mp3"));
+  callSounds.push(loadSound("call-rambo.mp3"));
+  callSounds.push(loadSound("call-silence.mp3"));
+  callSounds.push(loadSound("call-vendetta.mp3"));
 
+  responseSounds.push(loadSound("response-conan.mp3"));
+  responseSounds.push(loadSound("response-bullitt.mp3"));
+  responseSounds.push(loadSound("response-darko.mp3"));
+  responseSounds.push(loadSound("response-deliverance.mp3"));
+  responseSounds.push(loadSound("response-fargo.mp3"));
+  responseSounds.push(loadSound("response-luke.mp3"));
+  responseSounds.push(loadSound("response-madmax.mp3"));
+  responseSounds.push(loadSound("response-sudden-impact.mp3"));
+  responseSounds.push(loadSound("response-taken.mp3"));
+  responseSounds.push(loadSound("response-topgun.mp3"));
+
+  // From Cartoon/Humour Folder
+  callSounds.push(loadSound("call-sued.mp3"));
+  callSounds.push(loadSound("call-over21.mp3"));
+  callSounds.push(loadSound("call-funny.wav"));
+
+  responseSounds.push(loadSound("response-rocks.mp3"));
+  responseSounds.push(loadSound("response-insults.mp3"));
+  responseSounds.push(loadSound("response-grief.wav"));
 }
 
 function windowResized() {
