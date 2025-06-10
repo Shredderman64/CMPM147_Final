@@ -22,6 +22,8 @@ let cooldownTime = 10;
 
 let friction = 0.25
 
+let x,y;
+
 let mainAudioVolume = 1; // A way to adjust the original volume
 let minDubbedAudioVolume = 0.6; // A way to adjust the dubbed volume
 let maxDubbedAudioVolume = 0.7; // A way to adjust the dubbed volume
@@ -152,6 +154,16 @@ function preload() {
   responseSounds.push(loadSound("response-rocks.mp3"));
   responseSounds.push(loadSound("response-insults.mp3"));
   responseSounds.push(loadSound("response-grief.wav"));
+
+  // From Horror/Mystery Folder
+  callSounds.push(loadSound("call-anyone-here.mp3"));
+  callSounds.push(loadSound("call-get-away.mp3"));
+  callSounds.push(loadSound("call-whoever-you-are.mp3"));
+
+  responseSounds.push(loadSound("response-beetlejuice.mp3"));
+  responseSounds.push(loadSound("response-dracula.mp3"));
+  responseSounds.push(loadSound("response-johnny.mp3"));
+  responseSounds.push(loadSound("response-survival.mp3"));
 }
 
 function windowResized() {
@@ -374,12 +386,14 @@ function drawTelly() {
   rect(width / 2 - 50, height / 2 - 50, 525, 290);
 
   //tv antenna
+/* this was a placeholder
   noStroke(0);
   strokeWeight(0);
   fill(217, 218, 219);
   //angleMode(DEGREES);
   //rotate(45);
   rect(width / 2 - 300, height / 2 - 240, 10, 150);
+*/
 }
 
 function generateStatic() {
