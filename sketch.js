@@ -128,34 +128,46 @@ function preload() {
     loadSound("call-sued.mp3"),
     loadSound("call-over21.mp3"),
     loadSound("call-funny.wav"),
+    loadSound("call-doc.wav"),
+    loadSound("call-know-the-word.mp3"),
+    loadSound("call-jobs.mp3"),
   );
   audioBucket[1].response.push(
     loadSound("response-rocks.mp3"),
     loadSound("response-insults.mp3"),
     loadSound("response-grief.wav"),
-    loadSound("response-beetlejuice.mp3")
+    loadSound("response-beetlejuice.mp3"),
+    loadSound("response-beethoven.mp3"),
+    loadSound("response-frog.mp3")
   );
   audioBucket[1].random.push(
     loadSound("random-goofy.mp3"),
     loadSound("random-finn.mp3"),
+    loadSound("random-bugs-bunny.mp3"),
+    loadSound("random-rat.mp3"),
   );
 
-  // Horror/Mystery Bucket
+  // Horror Bucket
   audioBucket[2].call.push(
     loadSound("call-anyone-here.mp3"),
     loadSound("call-whoever-you-are.mp3"),
     loadSound("call-get-away.mp3"),
+    loadSound("call-cabin.wav"),
+    loadSound("call-moral.mp3"),
+    loadSound("call-saturday.mp3"),
   );
   audioBucket[2].response.push(
     loadSound("response-dracula.mp3"),
     loadSound("response-johnny.mp3"),
     loadSound("response-survival.mp3"),
-    loadSound("response-beetlejuice.mp3")
+    loadSound("response-beetlejuice.mp3"),
+    loadSound("response-death-room.mp3"),
   );
   audioBucket[2].random.push(
     loadSound("random-fnaf.mp3"),
     loadSound("random-error.mp3"),
-    loadSound("random-dead-people.mp3")
+    loadSound("random-dead-people.mp3"),
+    loadSound("random-horror-sfx.wav"),
   );
 
 
@@ -315,6 +327,13 @@ function draw() {
   //image(video, width / 2 - 700 / 2, height / 2 - 360 / 2);
   if (tvOn) {
     image(video, width / 2 - 288, height / 2 - 180);
+
+     drawCRTScanLines(); //to draw the CRT scan lines
+
+    // Occasionally draw VHS glitch effects
+    if (random(1) < 1 / 100) { // 1% chance per frame
+      drawVHSGlitch(); //to draw the VHS glitch
+    }
   }
 
   drawTelly(); //to draw the television
@@ -344,6 +363,45 @@ function draw() {
       startDub();
     }
   }
+}
+
+function drawCRTScanLines() {
+  let x = width / 2 - 288;
+  let y = height / 2 - 180;
+  let w = 576;
+  let h = 250;
+
+  for (let i = y; i < y + h; i += 2) {
+    let alpha = map(noise(i * 0.05, frameCount * 0.02), 0, 1, 10, 40);
+    stroke(0, 0, 0, alpha);
+    line(x, i, x + w, i);
+  }
+}
+
+
+function drawVHSGlitch() {
+  let x = width / 2 - 240;
+  let y = height / 2 - 180;
+  let w = 500;
+  let h = 250;
+
+  let glitchHeight = int(random(15, 40));
+  let glitchY = int(random(y, y + h - glitchHeight));
+  let offset = int(random(20, 30));
+
+  // RED smear (left)
+  tint(255, 50, 50, 180);
+  copy(x, glitchY, w, glitchHeight, x - offset, glitchY, w, glitchHeight);
+
+  // GREEN smear (right)
+  tint(50, 255, 50, 180);
+  copy(x, glitchY, w, glitchHeight, x + offset, glitchY + 2, w, glitchHeight);
+
+  // BLUE smear (up+left)
+  tint(50, 50, 255, 180);
+  copy(x, glitchY, w, glitchHeight, x - offset / 2, glitchY - 2, w, glitchHeight);
+
+  noTint();
 }
 
 function startDub() {
@@ -912,6 +970,16 @@ function stopAllAudiosAndVideos() {
   for (let dub of responseSounds) {
     if (dub.isPlaying()) {
       dub.stop();
+    }
+  }
+
+  for (let bucketObject of audioBucket) {
+    for (let arrName of ['call', 'response', 'random']) {
+      for (let sound of bucketObject[arrName]) {
+        if (sound.isPlaying()) {
+          sound.stop();
+        }
+      }
     }
   }
 
