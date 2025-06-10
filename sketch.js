@@ -973,16 +973,6 @@ function stopAllAudiosAndVideos() {
     }
   }
 
-  for (let bucketObject of audioBucket) {
-    for (let arrName of ['call', 'response', 'random']) {
-      for (let sound of bucketObject[arrName]) {
-        if (sound.isPlaying()) {
-          sound.stop();
-        }
-      }
-    }
-  }
-
   if (video) {
     video.stop();
     video.hide();
