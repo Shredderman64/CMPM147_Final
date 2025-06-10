@@ -27,7 +27,7 @@ let minDubbedAudioVolume = 0.6; // A way to adjust the dubbed volume
 let maxDubbedAudioVolume = 0.7; // A way to adjust the dubbed volume
 
 let powerButtonIcon;
-let tvOn = true; // Flag to check if the telly is on
+let tvOn = false;         // Flag to check if the telly is on
 
 //Complicated Knob by icm
 //https://editor.p5js.org/icm/sketches/HkfFHcp2
@@ -40,8 +40,17 @@ var r = 20;
 // Knob angle
 var angle = 0;
 var count = 0;
+
 // Offset angle for turning knob
 var offsetAngle = 0;
+
+let antennaBaseX, antennaBaseY;
+let antennaTipX, antennaTipY;
+let antennaLength = 80;
+let antennaDragging = false;
+let antennaDiameter = 15;
+let antennaBuckets = 4; // Number of "audio buckets"
+let currentBucket = 0;
 
 function preload() {
   //hardwood background image
@@ -181,6 +190,12 @@ function setup() {
   video.loop();
   videoAudio.loop();
   videoAudio.setVolume(mainAudioVolume);
+
+
+  antennaBaseX = windowWidth / 2 - 50;
+  antennaBaseY = windowHeight / 2 - 180;
+  antennaTipX = antennaBaseX;
+  antennaTipY = antennaBaseY - antennaLength;
 }
 
 function draw() {
@@ -201,7 +216,7 @@ function draw() {
   drawPowerButton(); //to draw interactable power button
   drawChannelKnob(); //to draw interactable channel knob
   drawVolumeButton(); //to draw interactable volume button
-  //drawTellyAntenna();                //to draw interactable tv antenna
+  drawAntenna(); //to draw interactable tv antenna
 
   let spectrum = fft.analyze();
   let mids = fft.getEnergy(300, 3000);
@@ -605,6 +620,42 @@ function drawVolumeButton() {
   text("-", volDownXBtn + 10, volDownYBtn + 30);
 }
 
+function drawAntenna() {
+  antennaBaseX = width / 2 - 50;
+  antennaBaseY = height / 2 - 180;
+
+  if (antennaDragging) {
+    let dx = mouseX - antennaBaseX;
+    let dy = mouseY - antennaBaseY;
+    let angle = atan2(dy, dx);
+    antennaTipX = antennaBaseX + cos(angle) * antennaLength;
+    antennaTipY = antennaBaseY + sin(angle) * antennaLength;
+
+    let newBucket = floor(map(degrees(angle), -180, 0, 0, antennaBuckets));
+    newBucket = constrain(newBucket, 0, antennaBuckets - 1);
+
+    if (newBucket !== currentBucket) {
+      currentBucket = newBucket;
+      applyAntennaBucket(currentBucket);
+    }
+  }
+  
+  // Avoid NaN
+  if (isNaN(antennaTipX) || isNaN(antennaTipY)) {
+    console.log("NaN error.")
+    return;
+  }
+
+  // Draw line and draggable head
+  stroke("silver");
+  strokeWeight(3);
+  line(antennaBaseX, antennaBaseY, antennaTipX, antennaTipY);
+
+  fill("silver");
+  noStroke();
+  ellipse(antennaTipX, antennaTipY, antennaDiameter);
+}
+
 function drawWallpaper() {
   image(bg, 0, 0, windowWidth, windowHeight);
 }
@@ -733,6 +784,10 @@ function mousePressed() {
     var dy = mouseY - y;
     offsetAngle = atan2(dy, dx) - angle;
   }
+
+  if (dist(mouseX, mouseY, antennaTipX, antennaTipY) < antennaDiameter) {
+    antennaDragging = true;
+  }
 }
 
 function stopAllAudiosAndVideos() {
@@ -775,4 +830,27 @@ function stopAllAudiosAndVideos() {
 function mouseReleased() {
   // Stop dragging
   dragging = false;
+  antennaDragging = false;
+}
+
+function applyAntennaBucket(bucket) {
+  if (bucket === 0) {
+    minDubbedAudioVolume = 0.3;
+    maxDubbedAudioVolume = 0.4;
+    midsensitivity = 80;
+  } else if (bucket === 1) {
+    minDubbedAudioVolume = 0.5;
+    maxDubbedAudioVolume = 0.6;
+    midsensitivity = 90;
+  } else if (bucket === 2) {
+    minDubbedAudioVolume = 0.6;
+    maxDubbedAudioVolume = 0.7;
+    midsensitivity = 100;
+  } else {
+    minDubbedAudioVolume = 0.7;
+    maxDubbedAudioVolume = 0.8;
+    midsensitivity = 110;
+  }
+
+  console.log("Switched to antenna bucket", bucket);
 }
