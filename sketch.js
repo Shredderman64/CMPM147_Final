@@ -6,6 +6,23 @@ let currentDub = null; // Reference to the currently playing dub
 let lastDub = null; // Reference to the previously played dub (to prevent repeats)
 let midsensitivity = 95; // Threshold for mid-frcequency energy triggering a dub
 
+
+// audioBucket that holds call, response and random audio clips
+let audioBucket = [
+  {
+    call: [], response: [], random: []
+  },
+  {
+    call: [], response: [], random: []
+  },
+  {
+    call: [], response: [], random: []
+  }
+];
+
+let currentBucket = 0;
+let callBucket, responseBucket, dubBucket;
+
 let dubVideo = []; // Array to hold dub video clips
 let dubVideoAudio = []; // Array to hold the videos original audio
 let currentChannel = -1; // For the channel to change when first interaction
@@ -23,13 +40,14 @@ let cooldownTime = 10;
 let friction = 0.25
 
 let x,y;
+let bg;
 
 let mainAudioVolume = 1; // A way to adjust the original volume
 let minDubbedAudioVolume = 0.6; // A way to adjust the dubbed volume
 let maxDubbedAudioVolume = 0.7; // A way to adjust the dubbed volume
 
 let powerButtonIcon;
-let tvOn = false;         // Flag to check if the telly is on
+let tvOn;         // Flag to check if the telly is on
 
 //Complicated Knob by icm
 //https://editor.p5js.org/icm/sketches/HkfFHcp2
@@ -51,10 +69,13 @@ let antennaTipX, antennaTipY;
 let antennaLength = 80;
 let antennaDragging = false;
 let antennaDiameter = 15;
-let antennaBuckets = 4; // Number of "audio buckets"
-let currentBucket = 0;
+//if we are going to use more, we would need to change this
+let antennaBuckets = 3;         // Number of "audio buckets"
 
 function preload() {
+
+  applyAntennaBucket(0);
+
   //hardwood background image
   bg = loadImage("assets/hardwoodBackground.jpg");
   bg = loadImage("assets/hardwoodBackground-1.jpg");
@@ -69,6 +90,74 @@ function preload() {
   //videoAudio = loadSound('volcano_audio.mp3');
   //video = createVideo(['bobRoss_video.mp4']);
   //videoAudio = loadSound('bobRoss_audio.mp3');
+
+  // Action/Thriller Bucket
+  audioBucket[0].call.push(
+    loadSound("call-clockwork.mp3"),
+    loadSound("call-clue.mp3"),
+    loadSound("call-goldfinger.mp3"),
+    loadSound("call-harry.mp3"),
+    loadSound("call-luke.mp3"),
+    loadSound("call-ocean.mp3"),
+    loadSound("call-present-danger.mp3"),
+    loadSound("call-rambo.mp3"),
+    loadSound("call-silence.mp3"),
+    loadSound("call-vendetta.mp3")
+  );
+  audioBucket[0].response.push(
+    loadSound("response-conan.mp3"),
+    loadSound("response-bullitt.mp3"),
+    loadSound("response-darko.mp3"),
+    loadSound("response-deliverance.mp3"),
+    loadSound("response-fargo.mp3"),
+    loadSound("response-luke.mp3"),
+    loadSound("response-madmax.mp3"),
+    loadSound("response-sudden-impact.mp3"),
+    loadSound("response-taken.mp3"),
+    loadSound("response-topgun.mp3")
+  );
+  audioBucket[0].random.push(
+    loadSound("random-john-cena.mp3"),
+    loadSound("random-make-my-day.mp3"),
+    loadSound("random-friends-close.mp3"),
+    loadSound("random-wilhelm.mp3"),
+  )
+
+  // Cartoon/Humour Bucket
+  audioBucket[1].call.push(
+    loadSound("call-sued.mp3"),
+    loadSound("call-over21.mp3"),
+    loadSound("call-funny.wav"),
+  );
+  audioBucket[1].response.push(
+    loadSound("response-rocks.mp3"),
+    loadSound("response-insults.mp3"),
+    loadSound("response-grief.wav"),
+    loadSound("response-beetlejuice.mp3")
+  );
+  audioBucket[1].random.push(
+    loadSound("random-goofy.mp3"),
+    loadSound("random-finn.mp3"),
+  );
+
+  // Horror/Mystery Bucket
+  audioBucket[2].call.push(
+    loadSound("call-anyone-here.mp3"),
+    loadSound("call-whoever-you-are.mp3"),
+    loadSound("call-get-away.mp3"),
+  );
+  audioBucket[2].response.push(
+    loadSound("response-dracula.mp3"),
+    loadSound("response-johnny.mp3"),
+    loadSound("response-survival.mp3"),
+    loadSound("response-beetlejuice.mp3")
+  );
+  audioBucket[2].random.push(
+    loadSound("random-fnaf.mp3"),
+    loadSound("random-error.mp3"),
+    loadSound("random-dead-people.mp3")
+  );
+
 
   //Load the video and the original audio into the array
   dubVideo.push(createVideo("video.mp4"));
@@ -88,10 +177,9 @@ function preload() {
   dubVideo.push(createVideo("spaceOdyssey_video.mp4"));
   dubVideoAudio.push(loadSound("spaceOdyssey_audio.mp4"));
 
-  
+
   video = dubVideo[1];
   videoAudio = dubVideoAudio[1];
-
   //to check how many videos are currently in the array
   let allVideos = dubVideo.length;
   console.log("There are", allVideos, "channels");
@@ -99,6 +187,7 @@ function preload() {
     dubVideo[i].hide();
   }
 
+  /*
   // Load alternative dub audio clips into the array
   dubAudios.push(loadSound("random-be-back.mp3"));
   dubAudios.push(loadSound("random-boat.mp3"));
@@ -124,6 +213,7 @@ function preload() {
   
   // Load the call and response audios into the arrays
   // From Action/Thriller Folder
+  /*
   callSounds.push(loadSound("call-clockwork.mp3"));
   callSounds.push(loadSound("call-clue.mp3"));
   callSounds.push(loadSound("call-goldfinger.mp3"));
@@ -134,6 +224,7 @@ function preload() {
   callSounds.push(loadSound("call-rambo.mp3"));
   callSounds.push(loadSound("call-silence.mp3"));
   callSounds.push(loadSound("call-vendetta.mp3"));
+  
 
   responseSounds.push(loadSound("response-conan.mp3"));
   responseSounds.push(loadSound("response-bullitt.mp3"));
@@ -164,6 +255,8 @@ function preload() {
   responseSounds.push(loadSound("response-dracula.mp3"));
   responseSounds.push(loadSound("response-johnny.mp3"));
   responseSounds.push(loadSound("response-survival.mp3"));
+  */
+
 }
 
 function windowResized() {
@@ -260,9 +353,9 @@ function startDub() {
   // 30% chance for call/response
   let useCallResponse = random(1) < callfrequency;
 
-  if (useCallResponse && callSounds.length > 0 && responseSounds.length > 0) {
-    currentDub = random(callSounds);
-    queuedResponse = random(responseSounds);
+  if (useCallResponse && callBucket.length > 0 && responseBucket.length > 0) {
+    currentDub = random(callBucket);
+    queuedResponse = random(responseBucket);
 
     currentDub.setVolume(random(minDubbedAudioVolume, maxDubbedAudioVolume));
     currentDub.play();
@@ -272,10 +365,10 @@ function startDub() {
       awaitingResponse = true;
       videoAudio.setVolume(mainAudioVolume); //  Restore video audio after call
     });
-  } else if (dubAudios.length > 0) {
+  } else if (dubBucket.length > 0) {
     let nextDub;
     do {
-      nextDub = random(dubAudios);
+      nextDub = random(dubBucket);
     } while (nextDub === lastDub);
 
     currentDub = nextDub;
@@ -645,11 +738,12 @@ function drawAntenna() {
     antennaTipX = antennaBaseX + cos(angle) * antennaLength;
     antennaTipY = antennaBaseY + sin(angle) * antennaLength;
 
-    let newBucket = floor(map(degrees(angle), -180, 0, 0, antennaBuckets));
+    let newBucket = floor(map(degrees(angle), -180, 180, 0, antennaBuckets));       //intially, it was -180, 0, 0.
     newBucket = constrain(newBucket, 0, antennaBuckets - 1);
 
     if (newBucket !== currentBucket) {
       currentBucket = newBucket;
+      if (tvOn) staticTimer = 10;
       applyAntennaBucket(currentBucket);
     }
   }
@@ -781,8 +875,6 @@ function mousePressed() {
       //video.volume(mainAudioVolume);
       video.show();
       video.hide();
-      //to ensure that the dubs play again in case it doesnt.
-      startDub();      
       
     } else {
       //idk i want to see if this works to stop audio from playing when off lol
@@ -848,6 +940,35 @@ function mouseReleased() {
 }
 
 function applyAntennaBucket(bucket) {
+
+  for (let dub of dubAudios) {
+    if (dub.isPlaying()) {
+      dub.stop();
+    }
+  }
+  
+  for (let dub of callSounds) {
+    if (dub.isPlaying()) {
+      dub.stop();
+    }
+  }
+  
+  for (let dub of responseSounds) {
+    if (dub.isPlaying()) {
+      dub.stop();
+    }
+  }
+
+  for (let bucketObject of audioBucket) {
+    for (let arrName of ['call', 'response', 'random']) {
+      for (let sound of bucketObject[arrName]) {
+        if (sound.isPlaying()) {
+          sound.stop();
+        }
+      }
+    }
+  }
+  
   if (bucket === 0) {
     minDubbedAudioVolume = 0.3;
     maxDubbedAudioVolume = 0.4;
@@ -865,6 +986,10 @@ function applyAntennaBucket(bucket) {
     maxDubbedAudioVolume = 0.8;
     midsensitivity = 110;
   }
+
+  callBucket = audioBucket[bucket].call;
+  responseBucket = audioBucket[bucket].response;
+  dubBucket = audioBucket[bucket].random;
 
   console.log("Switched to antenna bucket", bucket);
 }
