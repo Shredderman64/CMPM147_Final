@@ -23,6 +23,9 @@ let audioBucket = [
   },
   {
     call: [], response: [], random: []
+  },
+  {
+    call: [], response: [], random: []
   }
 ];
 
@@ -77,7 +80,7 @@ let antennaLength = 80;
 let antennaDragging = false;
 let antennaDiameter = 15;
 //if we are going to use more, we would need to change this
-let antennaBuckets = 3;         // Number of "audio buckets"
+let antennaBuckets = 4;         // Number of "audio buckets"
 
 function preload() {
 
@@ -98,8 +101,88 @@ function preload() {
   //video = createVideo(['bobRoss_video.mp4']);
   //videoAudio = loadSound('bobRoss_audio.mp3');
 
-  // Action/Thriller Bucket
+
+  // Western Bucket
   audioBucket[0].call.push(
+    loadSound("Call-amigo.mp3"),
+    loadSound("Call-finished.mp3"),
+    loadSound("Call-going.mp3"),
+    loadSound("Call-how.mp3"),
+    loadSound("Call-looking.mp3"),
+    loadSound("Call-thoseguys.mp3"),
+    loadSound("Call-who.mp3"),
+    loadSound("Call-lost.mp3"),
+    loadSound("Call-music.mp3"),
+    loadSound("Call-wait.mp3"),
+    loadSound("Call-sober.mp3"),
+    loadSound("Call-use.mp3"),
+    loadSound("Call-interesting.mp3"),
+    loadSound("Call-drunk.mp3"),
+    loadSound("Call-voice.mp3"),
+    loadSound("Call-reasonable.mp3"),
+    loadSound("Call-temper.mp3"),
+    loadSound("Call-worried.mp3"),
+    loadSound("Call-prophet.mp3"),
+    loadSound("Call-indio.mp3"),
+    loadSound("Call-caught.mp3"),
+    loadSound("Call-worth.mp3"),
+    loadSound("Call-friends.mp3"),
+    loadSound("Call-blondie.mp3"),
+    loadSound("Call-work.mp3"),
+    loadSound("Call-two.mp3"),
+    loadSound("Call-coming.mp3"),
+    loadSound("Call-list.mp3"),
+    loadSound("Call-shake.mp3")
+
+  );
+  audioBucket[0].response.push(
+    loadSound("Response-24hours.mp3"),
+    loadSound("Response-26.mp3"),
+    loadSound("Response-affairs.mp3"),
+    loadSound("Response-beauty.mp3"),
+    loadSound("Response-best.mp3"),
+    loadSound("Response-direction.mp3"),
+    loadSound("Response-Go.mp3"),
+    loadSound("Response-hang.mp3"),
+    loadSound("Response-laughing.mp3"),
+    loadSound("Response-life.mp3"),
+    loadSound("Response-loser.mp3"),
+    loadSound("Response-mad.mp3"),
+    loadSound("Response-mind.mp3"),
+    loadSound("Response-morons.mp3"),
+    loadSound("Response-pessimist.mp3"),
+    loadSound("Response-picky.mp3"),
+    loadSound("Response-scarecrow.mp3"),
+    loadSound("Response-sherriff.mp3"),
+    loadSound("Response-shoot.mp3"),
+    loadSound("Response-Shot.mp3"),
+    loadSound("Response-travel.mp3"),
+    loadSound("Response-not.mp3"),
+    loadSound("Response-us.mp3"),
+    loadSound("Response-talk.mp3")
+  );
+  audioBucket[0].random.push(
+    loadSound("Random-bank.mp3"),
+    loadSound("Random-compliment.mp3"),
+    loadSound("Random-dead.mp3"),
+    loadSound("Random-doyouknow.mp3"),
+    loadSound("Random-fight.mp3"),
+    loadSound("Random-flesh.mp3"),
+    loadSound("Random-life.mp3"),
+    loadSound("Random-money.mp3"),
+    loadSound("Random-nowhere.mp3"),
+    loadSound("Random-present.mp3"),
+    loadSound("Random-proverb.mp3"),
+    loadSound("Random-rant.mp3"),
+    loadSound("Random-robbing.mp3"),
+    loadSound("Random-see.mp3"),
+    loadSound("Random-showtime.mp3"),
+    loadSound("Random-vision.mp3"),
+    loadSound("Random-voodoo.mp3")
+  );
+
+  // Action/Thriller Bucket
+  audioBucket[1].call.push(
     loadSound("call-clockwork.mp3"),
     loadSound("call-clue.mp3"),
     loadSound("call-goldfinger.mp3"),
@@ -111,7 +194,7 @@ function preload() {
     loadSound("call-silence.mp3"),
     loadSound("call-vendetta.mp3")
   );
-  audioBucket[0].response.push(
+  audioBucket[1].response.push(
     loadSound("response-conan.mp3"),
     loadSound("response-bullitt.mp3"),
     loadSound("response-darko.mp3"),
@@ -123,7 +206,7 @@ function preload() {
     loadSound("response-taken.mp3"),
     loadSound("response-topgun.mp3")
   );
-  audioBucket[0].random.push(
+  audioBucket[1].random.push(
     loadSound("random-john-cena.mp3"),
     loadSound("random-make-my-day.mp3"),
     loadSound("random-friends-close.mp3"),
@@ -131,7 +214,7 @@ function preload() {
   )
 
   // Cartoon/Humour Bucket
-  audioBucket[1].call.push(
+  audioBucket[2].call.push(
     loadSound("call-sued.mp3"),
     loadSound("call-over21.mp3"),
     loadSound("call-funny.wav"),
@@ -139,7 +222,7 @@ function preload() {
     loadSound("call-know-the-word.mp3"),
     loadSound("call-jobs.mp3"),
   );
-  audioBucket[1].response.push(
+  audioBucket[2].response.push(
     loadSound("response-rocks.mp3"),
     loadSound("response-insults.mp3"),
     loadSound("response-grief.wav"),
@@ -147,7 +230,7 @@ function preload() {
     loadSound("response-beethoven.mp3"),
     loadSound("response-frog.mp3")
   );
-  audioBucket[1].random.push(
+  audioBucket[2].random.push(
     loadSound("random-goofy.mp3"),
     loadSound("random-finn.mp3"),
     loadSound("random-bugs-bunny.mp3"),
@@ -155,7 +238,7 @@ function preload() {
   );
 
   // Horror Bucket
-  audioBucket[2].call.push(
+  audioBucket[3].call.push(
     loadSound("call-anyone-here.mp3"),
     loadSound("call-whoever-you-are.mp3"),
     loadSound("call-get-away.mp3"),
@@ -163,20 +246,19 @@ function preload() {
     loadSound("call-moral.mp3"),
     loadSound("call-saturday.mp3"),
   );
-  audioBucket[2].response.push(
+  audioBucket[3].response.push(
     loadSound("response-dracula.mp3"),
     loadSound("response-johnny.mp3"),
     loadSound("response-survival.mp3"),
     loadSound("response-beetlejuice.mp3"),
     loadSound("response-death-room.mp3"),
   );
-  audioBucket[2].random.push(
+  audioBucket[3].random.push(
     loadSound("random-fnaf.mp3"),
     loadSound("random-error.mp3"),
     loadSound("random-dead-people.mp3"),
     loadSound("random-horror-sfx.wav"),
   );
-
 
   //Load the video and the original audio into the array
   dubVideo.push(createVideo("static.mp4"));
