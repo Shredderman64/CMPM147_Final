@@ -6,6 +6,8 @@ let currentDub = null; // Reference to the currently playing dub
 let lastDub = null; // Reference to the previously played dub (to prevent repeats)
 let midsensitivity = 95; // Threshold for mid-frcequency energy triggering a dub
 
+//to prevent multiple dubs or buckets being played at the same time?
+let dubCooldown = 1000; // Cooldown time in milliseconds for dubs
 
 // audioBucket that holds call, response and random audio clips
 let audioBucket = [
@@ -341,6 +343,7 @@ function draw() {
   drawChannelKnob(); //to draw interactable channel knob
   drawVolumeButton(); //to draw interactable volume button
   drawAntenna(); //to draw interactable tv antenna
+  
 
   let spectrum = fft.analyze();
   let mids = fft.getEnergy(300, 3000);
@@ -349,18 +352,20 @@ function draw() {
   fill(255, 0, 0);
   rect(20, height - mids, 20, mids);
 
-  if (!isDubbing && mids > midsensitivity) {
-    if (awaitingResponse) {
-      if (queuedResponse) {
-        playResponse();
+  if(millis() > dubCooldown){
+    if (!isDubbing && mids > midsensitivity) {
+      if (awaitingResponse) {
+        if (queuedResponse) {
+          playResponse();
+        } else {
+          awaitingResponse = false;
+          if (!tvOn) return;
+          startDub();
+        }
       } else {
-        awaitingResponse = false;
         if (!tvOn) return;
         startDub();
       }
-    } else {
-      if (!tvOn) return;
-      startDub();
     }
   }
 }
@@ -666,10 +671,8 @@ function changeChannelCooldown() {
 
 //https://www.geeksforgeeks.org/p5-js-isplaying-function/
 function switchChannel(channelIndex) {
-  //to quickly exit function if the tv is off to prevent audios from playing
- // if (!tvOn) {
-//    return;
- // }
+
+  dubCooldown = millis() + 3500;
 
   //to stop all dubbed audios
   for (let dub of dubAudios) {
@@ -786,6 +789,7 @@ function drawVolumeButton() {
 }
 
 function drawAntenna() {
+
   antennaBaseX = width / 2 - 50;
   antennaBaseY = height / 2 - 180;
 
@@ -802,6 +806,9 @@ function drawAntenna() {
     if (newBucket !== currentBucket) {
       currentBucket = newBucket;
       if (tvOn) staticTimer = 10;
+
+      dubCooldown = millis() + 3500;
+
       applyAntennaBucket(currentBucket);
     }
   }
@@ -1020,12 +1027,17 @@ function applyAntennaBucket(bucket) {
   for (let bucketObject of audioBucket) {
     for (let arrName of ['call', 'response', 'random']) {
       for (let sound of bucketObject[arrName]) {
-        if (sound.isPlaying()) {
+        if (sound.isPlaying() || sound.isPlaying) {
           sound.stop();
         }
       }
     }
   }
+
+  currentDub = null;
+  queuedResponse = null;
+  isDubbing = false;
+  awaitingResponse = false;
   
   if (bucket === 0) {
     minDubbedAudioVolume = 0.3;
