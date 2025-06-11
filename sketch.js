@@ -1,5 +1,7 @@
 // Declare global variables
 let video, videoAudio, fft, gain;
+let staticNoise;
+let staticEnv;
 let dubAudios = []; // Array to hold dub sound clips
 let isDubbing = false; // Flag to check if a dub is currently playing
 let currentDub = null; // Reference to the currently playing dub
@@ -315,11 +317,18 @@ function setup() {
   videoAudio.loop();
   videoAudio.setVolume(mainAudioVolume);
 
-
   antennaBaseX = windowWidth / 2 - 50;
   antennaBaseY = windowHeight / 2 - 180;
   antennaTipX = antennaBaseX;
   antennaTipY = antennaBaseY - antennaLength;
+
+  staticNoise = new p5.Noise();
+  staticNoise.start();
+  staticNoise.amp(0);
+
+  staticEnv = new p5.Env();
+  staticEnv.setADSR(0.001, 0.1, 0.2, 0.1);
+  staticEnv.setRange(0.5, 0);
 }
 
 function draw() {
@@ -679,7 +688,7 @@ function changeChannel(calcAngle) {
 
 //https://www.geeksforgeeks.org/p5-js-isplaying-function/
 function switchChannel(channelIndex) {
-
+  if (currentChannel >= 0) staticEnv.play(staticNoise);
   dubCooldown = millis() + 1500;
   channelCooldown = millis() + 500;
 
