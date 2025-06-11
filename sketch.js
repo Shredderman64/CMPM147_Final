@@ -951,7 +951,7 @@ class Antenna {
     
     if (this.antennaDragging) {
       let dx = mouseX - antennaBaseX;
-      let dy = min(-1, mouseY - antennaBaseY);
+      let dy = min(-10, mouseY - antennaBaseY);
       let angle = this.angle = atan2(dy, dx);
       this.antennaTipX = antennaBaseX + cos(angle) * antennaLength;
       this.antennaTipY = antennaBaseY + sin(angle) * antennaLength;
@@ -978,7 +978,7 @@ function drawAntenna() {
   antenna2.drawAntenna();
 
   let angle = lerp(antenna1.angle, antenna2.angle, 0.5);
-  let newBucket = floor(map(degrees(angle), -180, 0, 0, antennaBuckets));       //intially, it was -180, 0, 0.
+  let newBucket = floor(map(degrees(angle), -170, -10, 0, antennaBuckets));       //intially, it was -180, 0, 0.
   newBucket = constrain(newBucket, 0, antennaBuckets - 1);
 
   if (newBucket !== currentBucket) {
@@ -988,6 +988,11 @@ function drawAntenna() {
     // dubCooldown = millis() + 1500; // REMOVE
 
     applyAntennaBucket(currentBucket);
+  }
+
+  if (abs(degrees(antenna1.angle) - degrees(antenna2.angle)) < 15) {
+    if (antenna1.angle <= antenna2.angle) antenna1.angle -= radians(1);
+    else antenna1.angle += radians(1);
   }
   // antennaBaseX = width / 2 - 50;
   // antennaBaseY = height / 2 - 180;
@@ -1165,8 +1170,8 @@ function mousePressed() {
     offsetAngle = atan2(dy, dx) - angle;
   }
 
-  if (antenna1.isDragging()) antenna1.antennaDragging = true;
-  if (antenna2.isDragging()) antenna2.antennaDragging = true;
+  if (antenna1 && antenna1.isDragging()) antenna1.antennaDragging = true;
+  if (antenna2 && antenna2.isDragging()) antenna2.antennaDragging = true;
 }
 
 function stopAllAudiosAndVideos() {
@@ -1209,8 +1214,8 @@ function stopAllAudiosAndVideos() {
 function mouseReleased() {
   // Stop dragging
   dragging = false;
-  antenna1.antennaDragging = false;
-  antenna2.antennaDragging = false;
+  if (antenna1) antenna1.antennaDragging = false;
+  if (antenna2) antenna2.antennaDragging = false;
 }
 
 function applyAntennaBucket(bucket) {
