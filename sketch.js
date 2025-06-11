@@ -6,6 +6,10 @@ let currentDub = null; // Reference to the currently playing dub
 let lastDub = null; // Reference to the previously played dub (to prevent repeats)
 let midsensitivity = 95; // Threshold for mid-frcequency energy triggering a dub
 
+//cooldowns to prevent spamming
+let dubCooldown = 1000;             //to prevent rapid antenna spinning that would trigger multiple dubs
+let channelCooldown = 1000;         //to prevent rapid channel switching that would loose video files or crashing the website
+let volumeCooldown = 500;          //to prevent rapid volume changes.
 
 // audioBucket that holds call, response and random audio clips
 let audioBucket = [
@@ -34,8 +38,8 @@ let awaitingResponse = false; // Flag to wait for next spike
 let queuedResponse = null; // Reference to the response dub to be played
 
 //testing to create a cooldown when switching knob
-let lastSwitchTime = 0;
-let cooldownTime = 10;
+//let lastSwitchTime = 0;
+//let cooldownTime = 10;
 
 let friction = 0.25
 
@@ -341,6 +345,7 @@ function draw() {
   drawChannelKnob(); //to draw interactable channel knob
   drawVolumeButton(); //to draw interactable volume button
   drawAntenna(); //to draw interactable tv antenna
+  
 
   let spectrum = fft.analyze();
   let mids = fft.getEnergy(300, 3000);
@@ -349,18 +354,20 @@ function draw() {
   fill(255, 0, 0);
   rect(20, height - mids, 20, mids);
 
-  if (!isDubbing && mids > midsensitivity) {
-    if (awaitingResponse) {
-      if (queuedResponse) {
-        playResponse();
+  if(millis() > dubCooldown){
+    if (!isDubbing && mids > midsensitivity) {
+      if (awaitingResponse) {
+        if (queuedResponse) {
+          playResponse();
+        } else {
+          awaitingResponse = false;
+          if (!tvOn) return;
+          startDub();
+        }
       } else {
-        awaitingResponse = false;
         if (!tvOn) return;
         startDub();
       }
-    } else {
-      if (!tvOn) return;
-      startDub();
     }
   }
 }
@@ -642,11 +649,13 @@ function drawChannelKnob() {
 
     //to change the channel based by the channel knob
     let newChannel = changeChannel(calcAngle);
-    if (newChannel !== currentChannel && changeChannelCooldown()) {
-      lastSwitchTime = millis();
-      switchChannel(newChannel);
-      currentChannel = newChannel;
-      if (tvOn) staticTimer = 10;
+    if(millis() > channelCooldown){
+      if (newChannel !== currentChannel){ //&& changeChannelCooldown()) {
+        //lastSwitchTime = millis();
+        switchChannel(newChannel);
+        currentChannel = newChannel;
+        if (tvOn) staticTimer = 10;
+      }
     }
   }
 }
@@ -660,16 +669,15 @@ function changeChannel(calcAngle) {
   return constrain(channelIndex, 0, totalChannels - 1);
 }
 
-function changeChannelCooldown() {
-  return millis() - lastSwitchTime > cooldownTime;
-}
+//function changeChannelCooldown() {
+//  return millis() - lastSwitchTime > cooldownTime;
+//}
 
 //https://www.geeksforgeeks.org/p5-js-isplaying-function/
 function switchChannel(channelIndex) {
-  //to quickly exit function if the tv is off to prevent audios from playing
- // if (!tvOn) {
-//    return;
- // }
+
+  dubCooldown = millis() + 1500;
+  channelCooldown = millis() + 500;
 
   //to stop all dubbed audios
   for (let dub of dubAudios) {
@@ -786,6 +794,7 @@ function drawVolumeButton() {
 }
 
 function drawAntenna() {
+
   antennaBaseX = width / 2 - 50;
   antennaBaseY = height / 2 - 180;
 
@@ -802,6 +811,9 @@ function drawAntenna() {
     if (newBucket !== currentBucket) {
       currentBucket = newBucket;
       if (tvOn) staticTimer = 10;
+
+      dubCooldown = millis() + 1500;
+
       applyAntennaBucket(currentBucket);
     }
   }
@@ -853,71 +865,79 @@ function mousePressed() {
     mouseY < volDownYBtn + btnHeight;
 
   // Volume Up interaction
-  if (
-    mouseX > volUpXBtn &&
-    mouseX < volUpXBtn + btnWidth &&
-    mouseY > volUpYBtn &&
-    mouseY < volUpYBtn + btnHeight
-  ) {
-    console.log("Volume Up button clicked");
-    console.log("Current volume: ", mainAudioVolume);
-    console.log("Current min dub volume: ", minDubbedAudioVolume);
-    console.log("Current max dub volume: ", maxDubbedAudioVolume);
+  if(millis() > volumeCooldown){
+    if (
+      mouseX > volUpXBtn &&
+      mouseX < volUpXBtn + btnWidth &&
+      mouseY > volUpYBtn &&
+      mouseY < volUpYBtn + btnHeight
+    ) {
+      console.log("Volume Up button clicked");
+      console.log("Current volume: ", mainAudioVolume);
+      console.log("Current min dub volume: ", minDubbedAudioVolume);
+      console.log("Current max dub volume: ", maxDubbedAudioVolume);
 
-    if (mainAudioVolume < 1) {
-      mainAudioVolume += 0.1;
-      mainAudioVolume = Math.min(1, mainAudioVolume);
+      if (mainAudioVolume < 1) {
+        mainAudioVolume += 0.1;
+        mainAudioVolume = Math.min(1, mainAudioVolume);
 
-      if (!isDubbing) videoAudio.setVolume(mainAudioVolume);
+        if (!isDubbing) videoAudio.setVolume(mainAudioVolume);
 
-      minDubbedAudioVolume += 0.06;
-      maxDubbedAudioVolume += 0.07;
-      midsensitivity += 10;
-      if (currentDub)
-        currentDub.setVolume(
-          random(minDubbedAudioVolume, maxDubbedAudioVolume)
-        );
-      minDubbedAudioVolume = Math.min(0.6, minDubbedAudioVolume);
-      maxDubbedAudioVolume = Math.min(0.7, maxDubbedAudioVolume);
+        minDubbedAudioVolume += 0.06;
+        maxDubbedAudioVolume += 0.07;
+        midsensitivity += 10;
+        if (currentDub)
+          currentDub.setVolume(
+            random(minDubbedAudioVolume, maxDubbedAudioVolume)
+          );
+        minDubbedAudioVolume = Math.min(0.6, minDubbedAudioVolume);
+        maxDubbedAudioVolume = Math.min(0.7, maxDubbedAudioVolume);
+      }
+      console.log("++++++++++++++++++++++");
+      console.log("New volume: ", mainAudioVolume);
+      console.log("Min dubbed volume: ", minDubbedAudioVolume);
+      console.log("Max dubbed volume: ", maxDubbedAudioVolume);
+      volumeCooldown = millis() + 500;
     }
-    console.log("++++++++++++++++++++++");
-    console.log("New volume: ", mainAudioVolume);
-    console.log("Min dubbed volume: ", minDubbedAudioVolume);
-    console.log("Max dubbed volume: ", maxDubbedAudioVolume);
   }
-
   // Volume Down interaction
-  if (
-    mouseX > volDownXBtn &&
-    mouseX < volDownXBtn + btnWidth &&
-    mouseY > volDownYBtn &&
-    mouseY < volDownYBtn + btnHeight
-  ) {
-    console.log("Volume Down button clicked");
-    console.log("Current volume: ", mainAudioVolume);
-    console.log("Current min dub volume: ", minDubbedAudioVolume);
-    console.log("Current max dub volume: ", maxDubbedAudioVolume);
+  if(millis() > volumeCooldown){
+    if (
+      mouseX > volDownXBtn &&
+      mouseX < volDownXBtn + btnWidth &&
+      mouseY > volDownYBtn &&
+      mouseY < volDownYBtn + btnHeight
+    ) {
+      console.log("Volume Down button clicked");
+      console.log("Current volume: ", mainAudioVolume);
+      console.log("Current min dub volume: ", minDubbedAudioVolume);
+      console.log("Current max dub volume: ", maxDubbedAudioVolume);
 
-    if (mainAudioVolume > 0) {
-      mainAudioVolume -= 0.1;
-      mainAudioVolume = Math.max(0, mainAudioVolume);
+      if (mainAudioVolume > 0) {
+        mainAudioVolume -= 0.1;
+        mainAudioVolume = Math.max(0, mainAudioVolume);
 
-      if (!isDubbing) videoAudio.setVolume(mainAudioVolume);
+        if (!isDubbing) videoAudio.setVolume(mainAudioVolume);
 
-      minDubbedAudioVolume -= 0.06;
-      maxDubbedAudioVolume -= 0.07;
-      midsensitivity -= 10;
-      if (currentDub)
-        currentDub.setVolume(
-          random(minDubbedAudioVolume, maxDubbedAudioVolume)
-        );
-      minDubbedAudioVolume = Math.max(0, minDubbedAudioVolume);
-      maxDubbedAudioVolume = Math.max(0, maxDubbedAudioVolume);
+        minDubbedAudioVolume -= 0.06;
+        maxDubbedAudioVolume -= 0.07;
+        midsensitivity -= 10;
+        if (currentDub)
+          currentDub.setVolume(
+            random(minDubbedAudioVolume, maxDubbedAudioVolume)
+          );
+        minDubbedAudioVolume = Math.max(0, minDubbedAudioVolume);
+        maxDubbedAudioVolume = Math.max(0, maxDubbedAudioVolume);
+      }
+      console.log("-----------------------------");
+      console.log("New volume: ", mainAudioVolume);
+      console.log("Min dubbed volume: ", minDubbedAudioVolume);
+      console.log("Max dubbed volume: ", maxDubbedAudioVolume);
+      volumeCooldown = millis() + 500;
+      if (Math.abs(mainAudioVolume) < 0.01) {
+        mainAudioVolume = 0;
+      }
     }
-    console.log("-----------------------------");
-    console.log("New volume: ", mainAudioVolume);
-    console.log("Min dubbed volume: ", minDubbedAudioVolume);
-    console.log("Max dubbed volume: ", maxDubbedAudioVolume);
   }
 
   if (d < 20) {
@@ -1020,28 +1040,33 @@ function applyAntennaBucket(bucket) {
   for (let bucketObject of audioBucket) {
     for (let arrName of ['call', 'response', 'random']) {
       for (let sound of bucketObject[arrName]) {
-        if (sound.isPlaying()) {
+        if (sound.isPlaying() || sound.isPlaying) {
           sound.stop();
         }
       }
     }
   }
+
+  currentDub = null;
+  queuedResponse = null;
+  isDubbing = false;
+  awaitingResponse = false;
   
   if (bucket === 0) {
-    minDubbedAudioVolume = 0.3;
-    maxDubbedAudioVolume = 0.4;
+    //minDubbedAudioVolume = 0.3;
+    //maxDubbedAudioVolume = 0.4;
     midsensitivity = 80;
   } else if (bucket === 1) {
-    minDubbedAudioVolume = 0.5;
-    maxDubbedAudioVolume = 0.6;
+    //minDubbedAudioVolume = 0.5;
+    //maxDubbedAudioVolume = 0.6;
     midsensitivity = 90;
   } else if (bucket === 2) {
-    minDubbedAudioVolume = 0.6;
-    maxDubbedAudioVolume = 0.7;
+    //minDubbedAudioVolume = 0.6;
+    //maxDubbedAudioVolume = 0.7;
     midsensitivity = 100;
   } else {
-    minDubbedAudioVolume = 0.7;
-    maxDubbedAudioVolume = 0.8;
+    //minDubbedAudioVolume = 0.7;
+    //maxDubbedAudioVolume = 0.8;
     midsensitivity = 110;
   }
 
