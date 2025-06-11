@@ -138,6 +138,10 @@ function preload() {
     loadSound("call-doc.wav"),
     loadSound("call-know-the-word.mp3"),
     loadSound("call-jobs.mp3"),
+    loadSound("call-talladega.mp3"),
+    loadSound("call-lifeofbrian.mp3"),
+    loadSound("call-homealone.mp3"),
+    loadSound("call-airplane.mp3"),
   );
   audioBucket[1].response.push(
     loadSound("response-rocks.mp3"),
@@ -145,7 +149,12 @@ function preload() {
     loadSound("response-grief.wav"),
     loadSound("response-beetlejuice.mp3"),
     loadSound("response-beethoven.mp3"),
-    loadSound("response-frog.mp3")
+    loadSound("response-frog.mp3"),
+    loadSound("response-cableguy.mp3"),
+    loadSound("response-office.mp3"),
+    loadSound("response-pineapple.mp3"),
+    loadSound("response-ventura.mp3"),
+
   );
   audioBucket[1].random.push(
     loadSound("random-goofy.mp3"),
@@ -162,6 +171,10 @@ function preload() {
     loadSound("call-cabin.wav"),
     loadSound("call-moral.mp3"),
     loadSound("call-saturday.mp3"),
+    loadSound("call-snatchers.mp3"),
+    loadSound("call-saw.mp3"),
+    loadSound("call-frankenstein.mp3"),
+    loadSound("call-exorcist.mp3"),
   );
   audioBucket[2].response.push(
     loadSound("response-dracula.mp3"),
@@ -169,6 +182,9 @@ function preload() {
     loadSound("response-survival.mp3"),
     loadSound("response-beetlejuice.mp3"),
     loadSound("response-death-room.mp3"),
+    loadSound("response-evildead.mp3"),
+    loadSound("response-hellraiser.mp3"),
+    loadSound("response-wicker.mp3"),
   );
   audioBucket[2].random.push(
     loadSound("random-fnaf.mp3"),
@@ -179,7 +195,7 @@ function preload() {
 
 
   //Load the video and the original audio into the array
-  dubVideo.push(createVideo("static.mp4"));
+  dubVideo.push(createVideo("video.mp4"));
   dubVideoAudio.push(loadSound("video_audio.mp3"));
   dubVideo.push(createVideo("video.mp4"));
   dubVideoAudio.push(loadSound("video_audio.mp3"));
