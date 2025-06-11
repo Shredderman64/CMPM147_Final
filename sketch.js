@@ -6,6 +6,23 @@ let currentDub = null; // Reference to the currently playing dub
 let lastDub = null; // Reference to the previously played dub (to prevent repeats)
 let midsensitivity = 95; // Threshold for mid-frcequency energy triggering a dub
 
+
+// audioBucket that holds call, response and random audio clips
+let audioBucket = [
+  {
+    call: [], response: [], random: []
+  },
+  {
+    call: [], response: [], random: []
+  },
+  {
+    call: [], response: [], random: []
+  }
+];
+
+let currentBucket = 0;
+let callBucket, responseBucket, dubBucket;
+
 let dubVideo = []; // Array to hold dub video clips
 let dubVideoAudio = []; // Array to hold the videos original audio
 let currentChannel = -1; // For the channel to change when first interaction
@@ -22,12 +39,15 @@ let cooldownTime = 10;
 
 let friction = 0.25
 
+let x,y;
+let bg;
+
 let mainAudioVolume = 1; // A way to adjust the original volume
 let minDubbedAudioVolume = 0.6; // A way to adjust the dubbed volume
 let maxDubbedAudioVolume = 0.7; // A way to adjust the dubbed volume
 
 let powerButtonIcon;
-let tvOn = true; // Flag to check if the telly is on
+let tvOn;         // Flag to check if the telly is on
 
 //Complicated Knob by icm
 //https://editor.p5js.org/icm/sketches/HkfFHcp2
@@ -40,10 +60,22 @@ var r = 20;
 // Knob angle
 var angle = 0;
 var count = 0;
+
 // Offset angle for turning knob
 var offsetAngle = 0;
 
+let antennaBaseX, antennaBaseY;
+let antennaTipX, antennaTipY;
+let antennaLength = 80;
+let antennaDragging = false;
+let antennaDiameter = 15;
+//if we are going to use more, we would need to change this
+let antennaBuckets = 3;         // Number of "audio buckets"
+
 function preload() {
+
+  applyAntennaBucket(0);
+
   //hardwood background image
   bg = loadImage("assets/hardwoodBackground.jpg");
   bg = loadImage("assets/hardwoodBackground-1.jpg");
@@ -58,6 +90,86 @@ function preload() {
   //videoAudio = loadSound('volcano_audio.mp3');
   //video = createVideo(['bobRoss_video.mp4']);
   //videoAudio = loadSound('bobRoss_audio.mp3');
+
+  // Action/Thriller Bucket
+  audioBucket[0].call.push(
+    loadSound("call-clockwork.mp3"),
+    loadSound("call-clue.mp3"),
+    loadSound("call-goldfinger.mp3"),
+    loadSound("call-harry.mp3"),
+    loadSound("call-luke.mp3"),
+    loadSound("call-ocean.mp3"),
+    loadSound("call-present-danger.mp3"),
+    loadSound("call-rambo.mp3"),
+    loadSound("call-silence.mp3"),
+    loadSound("call-vendetta.mp3")
+  );
+  audioBucket[0].response.push(
+    loadSound("response-conan.mp3"),
+    loadSound("response-bullitt.mp3"),
+    loadSound("response-darko.mp3"),
+    loadSound("response-deliverance.mp3"),
+    loadSound("response-fargo.mp3"),
+    loadSound("response-luke.mp3"),
+    loadSound("response-madmax.mp3"),
+    loadSound("response-sudden-impact.mp3"),
+    loadSound("response-taken.mp3"),
+    loadSound("response-topgun.mp3")
+  );
+  audioBucket[0].random.push(
+    loadSound("random-john-cena.mp3"),
+    loadSound("random-make-my-day.mp3"),
+    loadSound("random-friends-close.mp3"),
+    loadSound("random-wilhelm.mp3"),
+  )
+
+  // Cartoon/Humour Bucket
+  audioBucket[1].call.push(
+    loadSound("call-sued.mp3"),
+    loadSound("call-over21.mp3"),
+    loadSound("call-funny.wav"),
+    loadSound("call-doc.wav"),
+    loadSound("call-know-the-word.mp3"),
+    loadSound("call-jobs.mp3"),
+  );
+  audioBucket[1].response.push(
+    loadSound("response-rocks.mp3"),
+    loadSound("response-insults.mp3"),
+    loadSound("response-grief.wav"),
+    loadSound("response-beetlejuice.mp3"),
+    loadSound("response-beethoven.mp3"),
+    loadSound("response-frog.mp3")
+  );
+  audioBucket[1].random.push(
+    loadSound("random-goofy.mp3"),
+    loadSound("random-finn.mp3"),
+    loadSound("random-bugs-bunny.mp3"),
+    loadSound("random-rat.mp3"),
+  );
+
+  // Horror Bucket
+  audioBucket[2].call.push(
+    loadSound("call-anyone-here.mp3"),
+    loadSound("call-whoever-you-are.mp3"),
+    loadSound("call-get-away.mp3"),
+    loadSound("call-cabin.wav"),
+    loadSound("call-moral.mp3"),
+    loadSound("call-saturday.mp3"),
+  );
+  audioBucket[2].response.push(
+    loadSound("response-dracula.mp3"),
+    loadSound("response-johnny.mp3"),
+    loadSound("response-survival.mp3"),
+    loadSound("response-beetlejuice.mp3"),
+    loadSound("response-death-room.mp3"),
+  );
+  audioBucket[2].random.push(
+    loadSound("random-fnaf.mp3"),
+    loadSound("random-error.mp3"),
+    loadSound("random-dead-people.mp3"),
+    loadSound("random-horror-sfx.wav"),
+  );
+
 
   //Load the video and the original audio into the array
   dubVideo.push(createVideo("video.mp4"));
@@ -77,10 +189,9 @@ function preload() {
   dubVideo.push(createVideo("spaceOdyssey_video.mp4"));
   dubVideoAudio.push(loadSound("spaceOdyssey_audio.mp4"));
 
-  
+
   video = dubVideo[1];
   videoAudio = dubVideoAudio[1];
-
   //to check how many videos are currently in the array
   let allVideos = dubVideo.length;
   console.log("There are", allVideos, "channels");
@@ -88,6 +199,7 @@ function preload() {
     dubVideo[i].hide();
   }
 
+  /*
   // Load alternative dub audio clips into the array
   dubAudios.push(loadSound("random-be-back.mp3"));
   dubAudios.push(loadSound("random-boat.mp3"));
@@ -111,9 +223,51 @@ function preload() {
   dubAudios.push(loadSound("random-what-about-us.mp3"));
   dubAudios.push(loadSound("random-wilhelm.mp3"));
   
-
+  // Load the call and response audios into the arrays
+  // From Action/Thriller Folder
+  /*
+  callSounds.push(loadSound("call-clockwork.mp3"));
+  callSounds.push(loadSound("call-clue.mp3"));
+  callSounds.push(loadSound("call-goldfinger.mp3"));
   callSounds.push(loadSound("call-harry.mp3"));
+  callSounds.push(loadSound("call-luke.mp3"));
+  callSounds.push(loadSound("call-ocean.mp3"));
+  callSounds.push(loadSound("call-present-danger.mp3"));
+  callSounds.push(loadSound("call-rambo.mp3"));
+  callSounds.push(loadSound("call-silence.mp3"));
+  callSounds.push(loadSound("call-vendetta.mp3"));
+  
+
   responseSounds.push(loadSound("response-conan.mp3"));
+  responseSounds.push(loadSound("response-bullitt.mp3"));
+  responseSounds.push(loadSound("response-darko.mp3"));
+  responseSounds.push(loadSound("response-deliverance.mp3"));
+  responseSounds.push(loadSound("response-fargo.mp3"));
+  responseSounds.push(loadSound("response-luke.mp3"));
+  responseSounds.push(loadSound("response-madmax.mp3"));
+  responseSounds.push(loadSound("response-sudden-impact.mp3"));
+  responseSounds.push(loadSound("response-taken.mp3"));
+  responseSounds.push(loadSound("response-topgun.mp3"));
+
+  // From Cartoon/Humour Folder
+  callSounds.push(loadSound("call-sued.mp3"));
+  callSounds.push(loadSound("call-over21.mp3"));
+  callSounds.push(loadSound("call-funny.wav"));
+
+  responseSounds.push(loadSound("response-rocks.mp3"));
+  responseSounds.push(loadSound("response-insults.mp3"));
+  responseSounds.push(loadSound("response-grief.wav"));
+
+  // From Horror/Mystery Folder
+  callSounds.push(loadSound("call-anyone-here.mp3"));
+  callSounds.push(loadSound("call-get-away.mp3"));
+  callSounds.push(loadSound("call-whoever-you-are.mp3"));
+
+  responseSounds.push(loadSound("response-beetlejuice.mp3"));
+  responseSounds.push(loadSound("response-dracula.mp3"));
+  responseSounds.push(loadSound("response-johnny.mp3"));
+  responseSounds.push(loadSound("response-survival.mp3"));
+  */
 
 }
 
@@ -153,6 +307,12 @@ function setup() {
   video.loop();
   videoAudio.loop();
   videoAudio.setVolume(mainAudioVolume);
+
+
+  antennaBaseX = windowWidth / 2 - 50;
+  antennaBaseY = windowHeight / 2 - 180;
+  antennaTipX = antennaBaseX;
+  antennaTipY = antennaBaseY - antennaLength;
 }
 
 function draw() {
@@ -167,13 +327,20 @@ function draw() {
   //image(video, width / 2 - 700 / 2, height / 2 - 360 / 2);
   if (tvOn) {
     image(video, width / 2 - 288, height / 2 - 180);
+
+     drawCRTScanLines(); //to draw the CRT scan lines
+
+    // Occasionally draw VHS glitch effects
+    if (random(1) < 1 / 100) { // 1% chance per frame
+      drawVHSGlitch(); //to draw the VHS glitch
+    }
   }
 
   drawTelly(); //to draw the television
   drawPowerButton(); //to draw interactable power button
   drawChannelKnob(); //to draw interactable channel knob
   drawVolumeButton(); //to draw interactable volume button
-  //drawTellyAntenna();                //to draw interactable tv antenna
+  drawAntenna(); //to draw interactable tv antenna
 
   let spectrum = fft.analyze();
   let mids = fft.getEnergy(300, 3000);
@@ -198,6 +365,45 @@ function draw() {
   }
 }
 
+function drawCRTScanLines() {
+  let x = width / 2 - 288;
+  let y = height / 2 - 180;
+  let w = 576;
+  let h = 250;
+
+  for (let i = y; i < y + h; i += 2) {
+    let alpha = map(noise(i * 0.05, frameCount * 0.02), 0, 1, 10, 40);
+    stroke(0, 0, 0, alpha);
+    line(x, i, x + w, i);
+  }
+}
+
+
+function drawVHSGlitch() {
+  let x = width / 2 - 240;
+  let y = height / 2 - 180;
+  let w = 500;
+  let h = 250;
+
+  let glitchHeight = int(random(15, 40));
+  let glitchY = int(random(y, y + h - glitchHeight));
+  let offset = int(random(20, 30));
+
+  // RED smear (left)
+  tint(255, 50, 50, 180);
+  copy(x, glitchY, w, glitchHeight, x - offset, glitchY, w, glitchHeight);
+
+  // GREEN smear (right)
+  tint(50, 255, 50, 180);
+  copy(x, glitchY, w, glitchHeight, x + offset, glitchY + 2, w, glitchHeight);
+
+  // BLUE smear (up+left)
+  tint(50, 50, 255, 180);
+  copy(x, glitchY, w, glitchHeight, x - offset / 2, glitchY - 2, w, glitchHeight);
+
+  noTint();
+}
+
 function startDub() {
   isDubbing = true; // Prevent overlapping dubs
   videoAudio.setVolume(0); // Mute the original audio during dub
@@ -205,9 +411,9 @@ function startDub() {
   // 30% chance for call/response
   let useCallResponse = random(1) < callfrequency;
 
-  if (useCallResponse && callSounds.length > 0 && responseSounds.length > 0) {
-    currentDub = random(callSounds);
-    queuedResponse = random(responseSounds);
+  if (useCallResponse && callBucket.length > 0 && responseBucket.length > 0) {
+    currentDub = random(callBucket);
+    queuedResponse = random(responseBucket);
 
     currentDub.setVolume(random(minDubbedAudioVolume, maxDubbedAudioVolume));
     currentDub.play();
@@ -217,10 +423,10 @@ function startDub() {
       awaitingResponse = true;
       videoAudio.setVolume(mainAudioVolume); //  Restore video audio after call
     });
-  } else if (dubAudios.length > 0) {
+  } else if (dubBucket.length > 0) {
     let nextDub;
     do {
-      nextDub = random(dubAudios);
+      nextDub = random(dubBucket);
     } while (nextDub === lastDub);
 
     currentDub = nextDub;
@@ -331,12 +537,14 @@ function drawTelly() {
   rect(width / 2 - 50, height / 2 - 50, 525, 290);
 
   //tv antenna
+/* this was a placeholder
   noStroke(0);
   strokeWeight(0);
   fill(217, 218, 219);
   //angleMode(DEGREES);
   //rotate(45);
   rect(width / 2 - 300, height / 2 - 240, 10, 150);
+*/
 }
 
 function generateStatic() {
@@ -577,6 +785,43 @@ function drawVolumeButton() {
   text("-", volDownXBtn + 10, volDownYBtn + 30);
 }
 
+function drawAntenna() {
+  antennaBaseX = width / 2 - 50;
+  antennaBaseY = height / 2 - 180;
+
+  if (antennaDragging) {
+    let dx = mouseX - antennaBaseX;
+    let dy = mouseY - antennaBaseY;
+    let angle = atan2(dy, dx);
+    antennaTipX = antennaBaseX + cos(angle) * antennaLength;
+    antennaTipY = antennaBaseY + sin(angle) * antennaLength;
+
+    let newBucket = floor(map(degrees(angle), -180, 180, 0, antennaBuckets));       //intially, it was -180, 0, 0.
+    newBucket = constrain(newBucket, 0, antennaBuckets - 1);
+
+    if (newBucket !== currentBucket) {
+      currentBucket = newBucket;
+      if (tvOn) staticTimer = 10;
+      applyAntennaBucket(currentBucket);
+    }
+  }
+  
+  // Avoid NaN
+  if (isNaN(antennaTipX) || isNaN(antennaTipY)) {
+    console.log("NaN error.")
+    return;
+  }
+
+  // Draw line and draggable head
+  stroke("silver");
+  strokeWeight(3);
+  line(antennaBaseX, antennaBaseY, antennaTipX, antennaTipY);
+
+  fill("silver");
+  noStroke();
+  ellipse(antennaTipX, antennaTipY, antennaDiameter);
+}
+
 function drawWallpaper() {
   image(bg, 0, 0, windowWidth, windowHeight);
 }
@@ -688,8 +933,6 @@ function mousePressed() {
       //video.volume(mainAudioVolume);
       video.show();
       video.hide();
-      //to ensure that the dubs play again in case it doesnt.
-      startDub();      
       
     } else {
       //idk i want to see if this works to stop audio from playing when off lol
@@ -704,6 +947,10 @@ function mousePressed() {
     var dx = mouseX - x;
     var dy = mouseY - y;
     offsetAngle = atan2(dy, dx) - angle;
+  }
+
+  if (dist(mouseX, mouseY, antennaTipX, antennaTipY) < antennaDiameter) {
+    antennaDragging = true;
   }
 }
 
@@ -747,4 +994,60 @@ function stopAllAudiosAndVideos() {
 function mouseReleased() {
   // Stop dragging
   dragging = false;
+  antennaDragging = false;
+}
+
+function applyAntennaBucket(bucket) {
+
+  for (let dub of dubAudios) {
+    if (dub.isPlaying()) {
+      dub.stop();
+    }
+  }
+  
+  for (let dub of callSounds) {
+    if (dub.isPlaying()) {
+      dub.stop();
+    }
+  }
+  
+  for (let dub of responseSounds) {
+    if (dub.isPlaying()) {
+      dub.stop();
+    }
+  }
+
+  for (let bucketObject of audioBucket) {
+    for (let arrName of ['call', 'response', 'random']) {
+      for (let sound of bucketObject[arrName]) {
+        if (sound.isPlaying()) {
+          sound.stop();
+        }
+      }
+    }
+  }
+  
+  if (bucket === 0) {
+    minDubbedAudioVolume = 0.3;
+    maxDubbedAudioVolume = 0.4;
+    midsensitivity = 80;
+  } else if (bucket === 1) {
+    minDubbedAudioVolume = 0.5;
+    maxDubbedAudioVolume = 0.6;
+    midsensitivity = 90;
+  } else if (bucket === 2) {
+    minDubbedAudioVolume = 0.6;
+    maxDubbedAudioVolume = 0.7;
+    midsensitivity = 100;
+  } else {
+    minDubbedAudioVolume = 0.7;
+    maxDubbedAudioVolume = 0.8;
+    midsensitivity = 110;
+  }
+
+  callBucket = audioBucket[bucket].call;
+  responseBucket = audioBucket[bucket].response;
+  dubBucket = audioBucket[bucket].random;
+
+  console.log("Switched to antenna bucket", bucket);
 }
