@@ -9,7 +9,7 @@ let lastDub = null; // Reference to the previously played dub (to prevent repeat
 let midsensitivity = 90; // Threshold for mid-frcequency energy triggering a dub
 
 //cooldowns to prevent spamming
-let dubCooldown = 1000;             //to prevent rapid antenna spinning that would trigger multiple dubs
+// let dubCooldown = 1000;             //to prevent rapid antenna spinning that would trigger multiple dubs
 let channelCooldown = 1000;         //to prevent rapid channel switching that would loose video files or crashing the website
 let volumeCooldown = 500;          //to prevent rapid volume changes.
 
@@ -465,20 +465,19 @@ function draw() {
   fill(255, 0, 0);
   rect(20, height - mids, 20, mids);
 
-  if(millis() > dubCooldown){
-    if (!isDubbing && mids > midsensitivity) {
-      if (awaitingResponse) {
-        if (queuedResponse) {
-          playResponse();
-        } else {
-          awaitingResponse = false;
-          if (!tvOn) return;
-          startDub();
-        }
+  // Remove dubCooldown logic
+  if (!isDubbing && mids > midsensitivity) {
+    if (awaitingResponse) {
+      if (queuedResponse) {
+        playResponse();
       } else {
+        awaitingResponse = false;
         if (!tvOn) return;
         startDub();
       }
+    } else {
+      if (!tvOn) return;
+      startDub();
     }
   }
 }
@@ -787,27 +786,11 @@ function changeChannel(calcAngle) {
 //https://www.geeksforgeeks.org/p5-js-isplaying-function/
 function switchChannel(channelIndex) {
   if (currentChannel >= 0 && tvOn) staticEnv.play(staticNoise);
-  dubCooldown = millis() + 1500;
+  // dubCooldown = millis() + 1500; // REMOVE
   channelCooldown = millis() + 500;
 
-  //to stop all dubbed audios
-  for (let dub of dubAudios) {
-    if (dub.isPlaying()) {
-      dub.stop();
-    }
-  }
-
-  for (let dub of callSounds) {
-    if (dub.isPlaying()) {
-      dub.stop();
-    }
-  }
-  
-  for (let dub of responseSounds) {
-    if (dub.isPlaying()) {
-      dub.stop();
-    }
-  }
+  // Stop all dubbed audios and call/response when swapping channels
+  stopAllDubsAndCalls();
 
   // Stop current video and audio
   if (video) {
@@ -905,6 +888,42 @@ function drawVolumeButton() {
   text("-", volDownXBtn + 10, volDownYBtn + 30);
 }
 
+// Helper to stop all dub/call/response audio
+function stopAllDubsAndCalls() {
+  for (let dub of dubAudios) {
+    if (dub.isPlaying()) {
+      dub.stop();
+    }
+  }
+  for (let dub of callSounds) {
+    if (dub.isPlaying()) {
+      dub.stop();
+    }
+  }
+  for (let dub of responseSounds) {
+    if (dub.isPlaying()) {
+      dub.stop();
+    }
+  }
+  // Also stop queued dubs from buckets
+  for (let bucketObject of audioBucket) {
+    for (let arrName of ['call', 'response', 'random']) {
+      for (let sound of bucketObject[arrName]) {
+        if (sound.isPlaying && sound.isPlaying()) {
+          sound.stop();
+        }
+      }
+    }
+  }
+  if (currentDub && currentDub.isPlaying()) {
+    currentDub.stop();
+  }
+  currentDub = null;
+  queuedResponse = null;
+  isDubbing = false;
+  awaitingResponse = false;
+}
+
 function drawAntenna() {
 
   antennaBaseX = width / 2 - 50;
@@ -926,7 +945,7 @@ function drawAntenna() {
       currentBucket = newBucket;
       if (tvOn) staticTimer = 10;
 
-      dubCooldown = millis() + 1500;
+      // dubCooldown = millis() + 1500; // REMOVE
 
       applyAntennaBucket(currentBucket);
     }
