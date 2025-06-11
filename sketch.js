@@ -994,6 +994,11 @@ function drawAntenna() {
     if (antenna1.angle <= antenna2.angle) antenna1.angle -= radians(1);
     else antenna1.angle += radians(1);
   }
+
+  if (abs(degrees(antenna2.angle) - degrees(antenna1.angle)) < 15) {
+    if (antenna2.angle <= antenna1.angle) antenna2.angle -= radians(1);
+    else antenna2.angle += radians(1);
+  }
   // antennaBaseX = width / 2 - 50;
   // antennaBaseY = height / 2 - 180;
   // antennaTipX = antennaBaseX + cos(antennaAngle) * antennaLength;
