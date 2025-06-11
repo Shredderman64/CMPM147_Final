@@ -70,6 +70,7 @@ var offsetAngle = 0;
 
 let antennaBaseX, antennaBaseY;
 let antennaTipX, antennaTipY;
+let antennaAngle = 0;
 let antennaLength = 80;
 let antennaDragging = false;
 let antennaDiameter = 15;
@@ -797,11 +798,13 @@ function drawAntenna() {
 
   antennaBaseX = width / 2 - 50;
   antennaBaseY = height / 2 - 180;
+  antennaTipX = antennaBaseX + cos(antennaAngle) * antennaLength;
+  antennaTipY = antennaBaseY + sin(antennaAngle) * antennaLength;
 
   if (antennaDragging) {
     let dx = mouseX - antennaBaseX;
     let dy = mouseY - antennaBaseY;
-    let angle = atan2(dy, dx);
+    let angle = antennaAngle = atan2(dy, dx);
     antennaTipX = antennaBaseX + cos(angle) * antennaLength;
     antennaTipY = antennaBaseY + sin(angle) * antennaLength;
 
