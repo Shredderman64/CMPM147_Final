@@ -177,6 +177,8 @@ function preload() {
 
 
   //Load the video and the original audio into the array
+  dubVideo.push(createVideo("static.mp4"));
+  dubVideoAudio.push(loadSound("video_audio.mp3"));
   dubVideo.push(createVideo("video.mp4"));
   dubVideoAudio.push(loadSound("video_audio.mp3"));
   dubVideo.push(createVideo("EngineSentai.mp4"));
@@ -294,7 +296,7 @@ let staticTimer = 0;
 function setup() {
   // Create the canvas and configure the video player
   createCanvas(640, 360);
-  video.size(640, 360);
+  video.size(480, 260);
   video.hide(); // Hide default HTML video controls
   video.volume(0); // Mute the video (we’re using the separate audio track)
 
@@ -321,6 +323,7 @@ function setup() {
 }
 
 function draw() {
+  video.size(480, 260);
   //to create the background and the scenery
   drawGradientSky();
   drawTable();
@@ -514,7 +517,7 @@ function drawTelly() {
   //draw static
   staticX = width / 2 - 50;
   staticY = height / 2 - 50;
-  if (staticTimer > 0) {
+  if (staticTimer > 0 || currentChannel == 0) {
     generateStatic();
     staticTimer--;
   }
@@ -710,33 +713,34 @@ function switchChannel(channelIndex) {
     currentDub.stop();
   }
 
-  
-  //to set the new video and audio
-  video = dubVideo[channelIndex];
-  videoAudio = dubVideoAudio[channelIndex];
-  
-  video.size(480, 260);
-  
-  if (!tvOn) return;
-  
-  videoAudio.loop();
-  video.volume(0);
-  
-  video.loop();
-  video.show();
-  videoAudio.disconnect();
-  gain.disconnect();
-  videoAudio.connect(gain);
-  gain.connect();
-  fft.setInput(gain);
-  videoAudio.setVolume(mainAudioVolume);
-  videoAudio.play();
-  isDubbing = false;
-  currentDub = null;
-  awaitingResponse = false;
-  currentChannel = channelIndex;
-  for (i = 0; i < dubVideo.length; i++) {
-    dubVideo[i].hide();
+  if (channelIndex > 0) {
+    //to set the new video and audio
+    video = dubVideo[channelIndex];
+    videoAudio = dubVideoAudio[channelIndex];
+    
+    video.size(480, 260);
+    
+    if (!tvOn) return;
+    
+    videoAudio.loop();
+    video.volume(0);
+    
+    video.loop();
+    video.show();
+    videoAudio.disconnect();
+    gain.disconnect();
+    videoAudio.connect(gain);
+    gain.connect();
+    fft.setInput(gain);
+    videoAudio.setVolume(mainAudioVolume);
+    videoAudio.play();
+    isDubbing = false;
+    currentDub = null;
+    awaitingResponse = false;
+    currentChannel = channelIndex;
+    for (i = 0; i < dubVideo.length; i++) {
+        dubVideo[i].hide();
+    }
   }
 }
 
@@ -949,7 +953,7 @@ function mousePressed() {
     } else {
       tvOn = true;
     }
-    if (tvOn) {
+    if (tvOn && currentChannel != 0) {
       video.play();
       video.volume(0);
       videoAudio.play();
