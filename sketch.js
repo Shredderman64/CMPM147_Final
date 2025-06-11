@@ -6,7 +6,7 @@ let dubAudios = []; // Array to hold dub sound clips
 let isDubbing = false; // Flag to check if a dub is currently playing
 let currentDub = null; // Reference to the currently playing dub
 let lastDub = null; // Reference to the previously played dub (to prevent repeats)
-let midsensitivity = 95; // Threshold for mid-frcequency energy triggering a dub
+let midsensitivity = 90; // Threshold for mid-frcequency energy triggering a dub
 
 //cooldowns to prevent spamming
 let dubCooldown = 1000;             //to prevent rapid antenna spinning that would trigger multiple dubs
