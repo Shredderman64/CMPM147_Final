@@ -688,7 +688,7 @@ function changeChannel(calcAngle) {
 
 //https://www.geeksforgeeks.org/p5-js-isplaying-function/
 function switchChannel(channelIndex) {
-  if (currentChannel >= 0) staticEnv.play(staticNoise);
+  if (currentChannel >= 0 && tvOn) staticEnv.play(staticNoise);
   dubCooldown = millis() + 1500;
   channelCooldown = millis() + 500;
 
