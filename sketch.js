@@ -933,12 +933,12 @@ function drawAntenna() {
 
   if (antennaDragging) {
     let dx = mouseX - antennaBaseX;
-    let dy = mouseY - antennaBaseY;
+    let dy = min(-1, mouseY - antennaBaseY);
     let angle = antennaAngle = atan2(dy, dx);
     antennaTipX = antennaBaseX + cos(angle) * antennaLength;
     antennaTipY = antennaBaseY + sin(angle) * antennaLength;
 
-    let newBucket = floor(map(degrees(angle), -180, 180, 0, antennaBuckets));       //intially, it was -180, 0, 0.
+    let newBucket = floor(map(degrees(angle), -180, 0, 0, antennaBuckets));       //intially, it was -180, 0, 0.
     newBucket = constrain(newBucket, 0, antennaBuckets - 1);
 
     if (newBucket !== currentBucket) {
