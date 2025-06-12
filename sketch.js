@@ -230,7 +230,7 @@ function preload() {
   audioBucket[2].response.push(
     loadSound("response-rocks.mp3"),
     loadSound("response-insults.mp3"),
-    loadSound("response-grief.wav"),
+    loadSound("response-grief.mp3"),
     loadSound("response-beetlejuice.mp3"),
     loadSound("response-beethoven.mp3"),
     loadSound("response-frog.mp3"),
@@ -274,7 +274,7 @@ function preload() {
     loadSound("random-fnaf.mp3"),
     loadSound("random-error.mp3"),
     loadSound("random-dead-people.mp3"),
-    loadSound("random-horror-sfx.wav"),
+    loadSound("random-horror-sfx.mp3"),
   );
 
   //Load the video and the original audio into the array
