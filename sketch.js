@@ -1185,22 +1185,28 @@ function applyAntennaBucket(bucket) {
   isDubbing = false;
   awaitingResponse = false;
   
-  if (bucket === 0) {
+  /*if (bucket === 0) {
     //minDubbedAudioVolume = 0.3;
     //maxDubbedAudioVolume = 0.4;
-    midsensitivity = 80;
+    //midsensitivity = 80;
   } else if (bucket === 1) {
     //minDubbedAudioVolume = 0.5;
     //maxDubbedAudioVolume = 0.6;
-    midsensitivity = 90;
+    //midsensitivity = 90;
   } else if (bucket === 2) {
     //minDubbedAudioVolume = 0.6;
     //maxDubbedAudioVolume = 0.7;
-    midsensitivity = 100;
+    //midsensitivity = 100;
   } else {
     //minDubbedAudioVolume = 0.7;
     //maxDubbedAudioVolume = 0.8;
-    midsensitivity = 110;
+    //midsensitivity = 110;
+  }
+  */
+
+  // Play static sound when switching antenna buckets if TV is on
+  if (tvOn) {
+    staticEnv.play(staticNoise);
   }
 
   callBucket = audioBucket[bucket].call;
